@@ -15,7 +15,7 @@ public class Board extends JPanel implements ActionListener{
     private final int DOT_SIZE = 10;
     private final int ALL_DOTS = 900;
     private final int RAND_POS = 59;
-    private final int DELAY = 50;
+    private int DELAY = 50;
 
     private final int[] x = new int[ALL_DOTS];
     private final int[] y = new int[ALL_DOTS];
@@ -38,13 +38,20 @@ public class Board extends JPanel implements ActionListener{
     private boolean isInMenu = true;
     private boolean highscores = false;
     private boolean gameOver = false;
+    private boolean settings = false;
+
+    private boolean walls = false;
+    private boolean speed = false;
+    private boolean music = true;
 
     private Clip clip1, clip2, clip3;
     private File file1, file2, file3;
     private AudioInputStream audioIn1, audioIn2, audioIn3;
 
-    private String[] options = {"Start", "Highscores", "Exit"};
-    private int currentSelection = 0;
+    private String[] options = {"Start", "Options", "Highscores", "Exit"};
+    private String[] settingsOptions = {"Speed: ", "Walls: ", "Music: "};
+    private int currentSelection1 = 0;
+    private int currentSelection2 = 0;
 
     private ArrayList<Image> images = new ArrayList<>();
     private Timer timer;
@@ -93,11 +100,7 @@ public class Board extends JPanel implements ActionListener{
             clip3 = AudioSystem.getClip();
             clip3.open(audioIn3);
 
-        } catch (LineUnavailableException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (UnsupportedAudioFileException e) {
+        } catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
             e.printStackTrace();
         }
     }
@@ -144,7 +147,7 @@ public class Board extends JPanel implements ActionListener{
         }
         
         locateApple();
-        clip1.start();
+        if(music) clip1.start();
 
         timer = new Timer(DELAY, this);
         timer.start();
@@ -161,16 +164,38 @@ public class Board extends JPanel implements ActionListener{
         if (isInMenu) {
             g.drawImage(snake, B_WIDTH*7/30, B_HEIGHT/15, null);
             for (int i = 0; i < options.length; i++) {
-                if (i == currentSelection) {
+                if (i == currentSelection1) {
                     g.setColor(Color.GREEN);
                 } else {
                     g.setColor(Color.BLUE);
                 }
                 g.setFont(new Font("Arial", Font.PLAIN, 36));
-                g.drawString(options[i], B_WIDTH * 3 / 9, B_HEIGHT/3 + i * B_HEIGHT*1/5);
+                g.drawString(options[i], B_WIDTH / 3, B_HEIGHT/3 + i * B_HEIGHT /5);
 
             }
-        } else if (highscores) {
+        }
+        else if(settings) {
+
+            g.drawImage(snake, B_WIDTH*7/30, B_HEIGHT/15, null);
+            for(int i = 0; i < settingsOptions.length; i++) {
+                if(i == currentSelection2) {
+                    g.setColor(Color.GREEN);
+                }
+                else {
+                    g.setColor(Color.BLUE);
+                }
+                g.setFont(new Font("Arial", Font.PLAIN, 36));
+                if(i==0) g.drawString(settingsOptions[i] + " " + speed, B_WIDTH / 3, B_HEIGHT /3 + i * B_HEIGHT / 5);
+                if(i==1) g.drawString(settingsOptions[i] + " " + walls, B_WIDTH / 3, B_HEIGHT / 3 + i * B_HEIGHT / 5);
+                if(i==2) g.drawString(settingsOptions[i] + " " + music, B_WIDTH / 3, B_HEIGHT /3 + i * B_HEIGHT / 5);
+            }
+            g.setFont(new Font("Helvatica", Font.BOLD, 16));
+            g.setColor(Color.WHITE);
+            g.drawString("Press ESC to back to the menu", B_WIDTH /30, B_HEIGHT*29/30);
+
+        }
+
+        else if (highscores) {
 
             showHighscores(g);
 
@@ -201,10 +226,7 @@ public class Board extends JPanel implements ActionListener{
 
     private void gameOver(Graphics g) {
 
-        clip1.setFramePosition(0);
-        clip1.stop();
-        clip3.setFramePosition(0);
-        clip3.start();
+
 
         String msg = "Game Over";
         String back = "Press ESC to back to the menu";
@@ -215,7 +237,7 @@ public class Board extends JPanel implements ActionListener{
         g.setFont(small);
         g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
         g.setFont(new Font("Helvatica", Font.BOLD, 16));
-        g.drawString(back, B_WIDTH*1/30, B_HEIGHT*29/30);
+        g.drawString(back, B_WIDTH /30, B_HEIGHT*29/30);
 
     }
 
@@ -224,8 +246,8 @@ public class Board extends JPanel implements ActionListener{
         counterString = String.valueOf(counter);
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString("Score", B_WIDTH*7/10, B_HEIGHT*1/10);
-        g.drawString(counterString, B_WIDTH*4/5, B_HEIGHT*1/10);
+        g.drawString("Score", B_WIDTH*7/10, B_HEIGHT /10);
+        g.drawString(counterString, B_WIDTH*4/5, B_HEIGHT /10);
 
     }
 
@@ -237,8 +259,11 @@ public class Board extends JPanel implements ActionListener{
             counter++;
 
             locateApple();
-            clip2.setFramePosition(0);
-            clip2.start();
+            if(music) {
+                clip2.setFramePosition(0);
+                clip2.start();
+            }
+
         }
     }
 
@@ -335,41 +360,55 @@ public class Board extends JPanel implements ActionListener{
         for (int z = dots; z > 0; z--) {
 
             if ((z > 4) && (x[0] == x[z]) && (y[0] == y[z])) {
-                inGame = false;
-                gameOver = true;
-
+                playAndSave();
             }
         }
 
-        if (y[0] >= B_HEIGHT) {
-            inGame = false;
-            gameOver = true;
+        if (y[0] >= B_HEIGHT) playAndSave();
 
+        if (y[0] < 0) playAndSave();
+
+        if (x[0] >= B_WIDTH) playAndSave();
+
+        if (x[0] < 0) playAndSave();
+
+
+    }
+
+    private void wallsOff() {
+
+        for (int z = dots; z > 0; z--) {
+
+            if ((z > 4) && (x[0] == x[z]) && (y[0] == y[z])) playAndSave();
         }
 
-        if (y[0] < 0) {
-            inGame = false;
-            gameOver = true;
+        if(x[0] >= B_WIDTH) {
+            x[0] = 0;
 
         }
-
-        if (x[0] >= B_WIDTH) {
-            inGame = false;
-            gameOver = true;
-
+        else if(y[0] >= B_HEIGHT) {
+            y[0] = 0;
+        }
+        else if(x[0] < 0) {
+            x[0] = B_WIDTH;
+        }
+        else if(y[0] < 0) {
+            y[0] = B_HEIGHT;
         }
 
-        if (x[0] < 0) {
-            inGame = false;
-            gameOver = true;
+    }
 
+    private void playAndSave() {
+        saveHighscore();
+        if(music) {
+            clip1.setFramePosition(0);
+            clip1.stop();
+            clip3.setFramePosition(0);
+            clip3.start();
         }
-        
-        if (gameOver) {
-            timer.stop();
-            saveHighscore();
 
-        }
+        inGame = false;
+        gameOver = true;
     }
 
     private void locateApple() {
@@ -390,7 +429,7 @@ public class Board extends JPanel implements ActionListener{
             Scanner scan = new Scanner(file);
             g.setColor(Color.RED);
             g.setFont(new Font("Arial", Font.BOLD, 52));
-            g.drawString("HIGHSCORES", B_WIDTH*2/9, B_HEIGHT*1/8);
+            g.drawString("HIGHSCORES", B_WIDTH*2/9, B_HEIGHT /8);
             g.setFont(new Font("Arial", Font.ITALIC, 30));
             g.setColor(Color.CYAN);
 
@@ -399,14 +438,14 @@ public class Board extends JPanel implements ActionListener{
                 String string = scan.nextLine();
                 String[] splits = string.split(" ");
                 i += B_HEIGHT / 3;
-                g.drawString(splits[0], B_WIDTH*1/7, (B_HEIGHT+i)/5);
+                g.drawString(splits[0], B_WIDTH /7, (B_HEIGHT+i)/5);
                 g.drawString(splits[1], B_WIDTH*4/5, (B_HEIGHT+i)/5);
 
             }
 
             g.setColor(Color.LIGHT_GRAY);
             g.setFont(new Font("Arial", Font.PLAIN, 20));
-            g.drawString("Press ESC to back to the menu", B_WIDTH*1/30, B_HEIGHT*29/30);
+            g.drawString("Press ESC to back to the menu", B_WIDTH /30, B_HEIGHT*29/30);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -419,7 +458,12 @@ public class Board extends JPanel implements ActionListener{
         if (inGame) {
 
             checkApple();
-            checkCollision();
+            if(walls) {
+                checkCollision();
+            }
+            else {
+                wallsOff();
+            }
             move();
         }
 
@@ -436,27 +480,97 @@ public class Board extends JPanel implements ActionListener{
                 inGame = false;
                 highscores = false;
                 gameOver = false;
+                settings = false;
                 if(key == KeyEvent.VK_DOWN) {
-                    currentSelection++;
-                    if(currentSelection >= options.length) currentSelection = 0;
+                    currentSelection1++;
+                    if(currentSelection1 >= options.length) currentSelection1 = 0;
                 }
                 else if(key == KeyEvent.VK_UP) {
-                    currentSelection--;
-                    if(currentSelection < 0) currentSelection = options.length - 1;
+                    currentSelection1--;
+                    if(currentSelection1 < 0) currentSelection1 = options.length - 1;
                 }
-                else if(currentSelection == 0 && key == KeyEvent.VK_ENTER) {
+                else if(currentSelection1 == 0 && key == KeyEvent.VK_ENTER) {
                     isInMenu = false;
                     inGame = true;
                 }
-                else if(currentSelection == 1 && key == KeyEvent.VK_ENTER) {
-                    highscores = true;
+                else if(currentSelection1 == 1 && key == KeyEvent.VK_ENTER) {
+                    settings = true;
                     isInMenu = false;
 
                 }
-                else if(currentSelection == 2 && key == KeyEvent.VK_ENTER) {
+                else if(currentSelection1 == 2 && key == KeyEvent.VK_ENTER) {
+                    highscores = true;
+                    isInMenu = false;
+                }
+                else if(currentSelection1 == 3 && key == KeyEvent.VK_ENTER) {
                     System.exit(0);
                 }
 
+            }
+            else if(settings) {
+                highscores = false;
+                isInMenu = false;
+                inGame = false;
+                gameOver = false;
+
+                if(key == KeyEvent.VK_DOWN) {
+                    currentSelection2++;
+                    if(currentSelection2 >= options.length - 1) currentSelection2 = 0;
+                }
+                else if(key == KeyEvent.VK_UP) {
+                    currentSelection2--;
+                    if(currentSelection2 < 0) currentSelection2 = options.length - 1;
+                }
+                else if(key == KeyEvent.VK_ESCAPE) {
+                    isInMenu = true;
+                    settings = false;
+                }
+                else if(currentSelection2 == 0 && key == KeyEvent.VK_ENTER) {
+                    speed = !speed;
+                    if(speed) {
+                        DELAY /= 2;
+                        timer.stop();
+                        timer = new Timer(DELAY, Board.this::actionPerformed);
+                        timer.start();
+                    }
+                    else {
+                        DELAY *= 2;
+                        timer.stop();
+                        timer = new Timer(DELAY, Board.this::actionPerformed);
+                        timer.start();
+                    }
+                }
+                else if(currentSelection2 == 1 && key == KeyEvent.VK_ENTER) {
+                    walls = !walls;
+                    if(walls) {
+                        checkCollision();
+                    }
+                    else
+                        wallsOff();
+                }
+                else if(currentSelection2 == 2 && key == KeyEvent.VK_ENTER) {
+                    music = !music;
+                    if(!music) {
+
+                        clip1.setFramePosition(0);
+                        clip1.stop();
+
+                        clip2.setFramePosition(0);
+                        clip2.stop();
+
+                        clip3.setFramePosition(0);
+                        clip3.stop();
+                    }
+                    else {
+
+                        clip1.setFramePosition(0);
+                        clip1.start();
+
+                        clip2.setFramePosition(0);
+                        clip3.setFramePosition(0);
+
+                    }
+                }
             }
             else if(highscores) {
                 isInMenu = false;
@@ -498,11 +612,13 @@ public class Board extends JPanel implements ActionListener{
             else if(gameOver) {
                 inGame = false;
                 highscores = false;
-                isInMenu = true;
-                    if(key == KeyEvent.VK_ESCAPE) {
+                isInMenu = false;
+                if(key == KeyEvent.VK_ESCAPE) {
+                        isInMenu = true;
                         gameOver = false;
+                        timer.stop();
                         initGame();
-                    }
+                }
             }
         }
     }
