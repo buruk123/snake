@@ -49,7 +49,7 @@ public class Board extends JPanel implements ActionListener{
     private AudioInputStream audioIn1, audioIn2, audioIn3;
 
     private String[] options = {"Start", "Options", "Highscores", "Exit"};
-    private String[] settingsOptions = {"Speed: ", "Walls: ", "Music: "};
+    private String[] settingsOptions = {"Speed x2: ", "Walls: ", "Music: "};
     private int currentSelection1 = 0;
     private int currentSelection2 = 0;
 
@@ -538,11 +538,11 @@ public class Board extends JPanel implements ActionListener{
 
                 if(key == KeyEvent.VK_DOWN) {
                     currentSelection2++;
-                    if(currentSelection2 >= options.length - 1) currentSelection2 = 0;
+                    if(currentSelection2 >= settingsOptions.length ) currentSelection2 = 0;
                 }
                 else if(key == KeyEvent.VK_UP) {
                     currentSelection2--;
-                    if(currentSelection2 < 0) currentSelection2 = options.length - 1;
+                    if(currentSelection2 < 0) currentSelection2 = settingsOptions.length - 1;
                 }
                 else if(key == KeyEvent.VK_ESCAPE) {
                     isInMenu = true;
