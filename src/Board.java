@@ -55,6 +55,7 @@ public class Board extends JPanel implements ActionListener{
 
     private ArrayList<Image> images = new ArrayList<>();
     private Timer timer;
+    private Image brick;
     private Image ball;
     private Image ball1, ball2, ball3, ball4;
     private Image apple;
@@ -123,6 +124,9 @@ public class Board extends JPanel implements ActionListener{
         images.add(ball2);
         images.add(ball3);
         images.add(ball4);
+
+        ImageIcon iib = new ImageIcon("resources/brick.png");
+        brick = iib.getImage();
 
         ImageIcon iia = new ImageIcon("resources/apple.png");
         apple = iia.getImage();
@@ -205,6 +209,23 @@ public class Board extends JPanel implements ActionListener{
             counter(g);
             rand = new Random();
 
+
+            if(walls) {
+
+                for(int i = 0; i < B_HEIGHT; i++) {
+                    for(int j = 0; j < B_WIDTH; j++) {
+                        if((i == 0) || (i == B_HEIGHT - 10)) {
+                            g.drawImage(brick, i, j, this);
+                        }
+                        else {
+                            if((j==0) || (j == B_WIDTH - 10)) {
+                                g.drawImage(brick, i, j, this);
+                            }
+                        }
+
+                    }
+                }
+            }
 
             for (int z = 0; z < dots; z++) {
                 ball = images.get(rand.nextInt(images.size()));
@@ -357,6 +378,8 @@ public class Board extends JPanel implements ActionListener{
 
     private void checkCollision() {
 
+
+
         for (int z = dots; z > 0; z--) {
 
             if ((z > 4) && (x[0] == x[z]) && (y[0] == y[z])) {
@@ -364,13 +387,13 @@ public class Board extends JPanel implements ActionListener{
             }
         }
 
-        if (y[0] >= B_HEIGHT) playAndSave();
+        if (y[0] >= B_HEIGHT - 10) playAndSave();
 
-        if (y[0] < 0) playAndSave();
+        if (y[0] < 10) playAndSave();
 
-        if (x[0] >= B_WIDTH) playAndSave();
+        if (x[0] >= B_WIDTH - 10) playAndSave();
 
-        if (x[0] < 0) playAndSave();
+        if (x[0] < 10) playAndSave();
 
 
     }
