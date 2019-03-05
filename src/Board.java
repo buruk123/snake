@@ -48,8 +48,12 @@ public class Board extends JPanel implements ActionListener{
     private File file1, file2, file3;
     private AudioInputStream audioIn1, audioIn2, audioIn3;
 
+    private Font fontBase;
+    private Font fontReal;
+    private File fontFile;
+
     private String[] options = {"Start", "Options", "Highscores", "Exit"};
-    private String[] settingsOptions = {"Speed x2: ", "Walls: ", "Music: "};
+    private String[] settingsOptions = {"Speed x2 ", "Walls ", "Music "};
     private int currentSelection1 = 0;
     private int currentSelection2 = 0;
 
@@ -139,6 +143,14 @@ public class Board extends JPanel implements ActionListener{
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        fontFile = new File("resources/font.TTF");
+        try {
+            fontBase = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+
+        } catch (FontFormatException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initGame() {
@@ -167,19 +179,21 @@ public class Board extends JPanel implements ActionListener{
     private void doDrawing(Graphics g) {
         if (isInMenu) {
             g.drawImage(snake, B_WIDTH*7/30, B_HEIGHT/15, null);
+            fontReal = fontBase.deriveFont(Font.PLAIN, 30);
             for (int i = 0; i < options.length; i++) {
                 if (i == currentSelection1) {
                     g.setColor(Color.GREEN);
                 } else {
                     g.setColor(Color.BLUE);
                 }
-                g.setFont(new Font("Arial", Font.PLAIN, 36));
-                g.drawString(options[i], B_WIDTH / 3, B_HEIGHT/3 + i * B_HEIGHT /5);
+                g.setFont(fontReal);
+                g.drawString(options[i], B_WIDTH * 3 / 10, B_HEIGHT/3 + i * B_HEIGHT /5);
 
             }
         }
         else if(settings) {
 
+            fontReal = fontBase.deriveFont(Font.PLAIN, 30);
             g.drawImage(snake, B_WIDTH*7/30, B_HEIGHT/15, null);
             for(int i = 0; i < settingsOptions.length; i++) {
                 if(i == currentSelection2) {
@@ -188,10 +202,10 @@ public class Board extends JPanel implements ActionListener{
                 else {
                     g.setColor(Color.BLUE);
                 }
-                g.setFont(new Font("Arial", Font.PLAIN, 36));
-                if(i==0) g.drawString(settingsOptions[i] + " " + speed, B_WIDTH / 3, B_HEIGHT /3 + i * B_HEIGHT / 5);
-                if(i==1) g.drawString(settingsOptions[i] + " " + walls, B_WIDTH / 3, B_HEIGHT / 3 + i * B_HEIGHT / 5);
-                if(i==2) g.drawString(settingsOptions[i] + " " + music, B_WIDTH / 3, B_HEIGHT /3 + i * B_HEIGHT / 5);
+                g.setFont(fontReal);
+                if(i==0) g.drawString(settingsOptions[i] + " " + speed, B_WIDTH / 5, B_HEIGHT /3 + i * B_HEIGHT / 5);
+                if(i==1) g.drawString(settingsOptions[i] + " " + walls, B_WIDTH / 5, B_HEIGHT / 3 + i * B_HEIGHT / 5);
+                if(i==2) g.drawString(settingsOptions[i] + " " + music, B_WIDTH / 5, B_HEIGHT /3 + i * B_HEIGHT / 5);
             }
             g.setFont(new Font("Helvatica", Font.BOLD, 16));
             g.setColor(Color.WHITE);
@@ -247,15 +261,13 @@ public class Board extends JPanel implements ActionListener{
 
     private void gameOver(Graphics g) {
 
-
-
+        fontReal = fontBase.deriveFont(Font.BOLD, 50);
         String msg = "Game Over";
         String back = "Press ESC to back to the menu";
-        Font small = new Font("Helvetica", Font.BOLD, 104);
-        FontMetrics metr = getFontMetrics(small);
+        FontMetrics metr = getFontMetrics(fontReal);
 
         g.setColor(Color.white);
-        g.setFont(small);
+        g.setFont(fontReal);
         g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
         g.setFont(new Font("Helvatica", Font.BOLD, 16));
         g.drawString(back, B_WIDTH /30, B_HEIGHT*29/30);
@@ -264,11 +276,12 @@ public class Board extends JPanel implements ActionListener{
 
     private void counter(Graphics g) {
 
+        fontReal = fontBase.deriveFont(Font.PLAIN, 20);
         counterString = String.valueOf(counter);
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString("Score", B_WIDTH*7/10, B_HEIGHT /10);
-        g.drawString(counterString, B_WIDTH*4/5, B_HEIGHT /10);
+        g.setFont(fontReal);
+        g.drawString("Score", B_WIDTH*6/10, B_HEIGHT /10);
+        g.drawString(counterString, B_WIDTH*8/10, B_HEIGHT /10);
 
     }
 
@@ -445,14 +458,15 @@ public class Board extends JPanel implements ActionListener{
 
     private void showHighscores(Graphics g) {
 
+        fontReal = fontBase.deriveFont(Font.BOLD, 40);
         int i = 0;
         File file = new File("resources/sorted.txt");
 
         try {
             Scanner scan = new Scanner(file);
             g.setColor(Color.RED);
-            g.setFont(new Font("Arial", Font.BOLD, 52));
-            g.drawString("HIGHSCORES", B_WIDTH*2/9, B_HEIGHT /8);
+            g.setFont(fontReal);
+            g.drawString("HIGHSCORES", B_WIDTH*3/18, B_HEIGHT /8);
             g.setFont(new Font("Arial", Font.ITALIC, 30));
             g.setColor(Color.CYAN);
 
@@ -467,7 +481,7 @@ public class Board extends JPanel implements ActionListener{
             }
 
             g.setColor(Color.LIGHT_GRAY);
-            g.setFont(new Font("Arial", Font.PLAIN, 20));
+            g.setFont(new Font("Helvatica", Font.BOLD, 16));
             g.drawString("Press ESC to back to the menu", B_WIDTH /30, B_HEIGHT*29/30);
 
         } catch (FileNotFoundException e) {
