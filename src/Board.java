@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -27,7 +28,12 @@ public class Board extends JPanel implements ActionListener{
     private int counter = 0;
     private String counterString;
 
-    private Random rand;
+    private Random rand = new Random();
+    private int xx = (int) (Math.random() * RAND_POS);
+    private int yy = (int) (Math.random() * RAND_POS);
+    private int brick_x = (xx * DOT_SIZE);
+    private int brick_y = (yy * DOT_SIZE);
+    private List<Integer> list = new ArrayList<>();
 
     private boolean leftDirection = false;
     private boolean rightDirection = true;
@@ -81,6 +87,7 @@ public class Board extends JPanel implements ActionListener{
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
         loadSounds();
         loadImages();
+
         initGame();
     }
 
@@ -155,14 +162,24 @@ public class Board extends JPanel implements ActionListener{
 
     private void initGame() {
 
+        xx = (int) (Math.random() * RAND_POS);
+        yy = (int) (Math.random() * RAND_POS);
+        brick_x = (xx * DOT_SIZE);
+        brick_y = (yy * DOT_SIZE);
+        list.clear();
+        list.add(brick_x);
+        list.add(brick_y);
         dots = 3;
         counter = 0;
         for (int z = 0; z < dots; z++) {
             x[z] = 50 - z * 10;
             y[z] = 50;
         }
-        
+
+
+
         locateApple();
+        locateObstacle();
         if(music) clip1.start();
 
         timer = new Timer(DELAY, this);
@@ -221,10 +238,18 @@ public class Board extends JPanel implements ActionListener{
 
             g.drawImage(apple, apple_x, apple_y, this);
             counter(g);
-            rand = new Random();
+
 
 
             if(walls) {
+
+                //g.drawImage(brick, list.get(0), list.get(1), this);
+
+                for(int i = 2; i < list.size(); i+=2) {
+                    g.drawImage(brick, list.get(i), list.get(i+1), this);
+                }
+
+
 
                 for(int i = 0; i < B_HEIGHT; i++) {
                     for(int j = 0; j < B_WIDTH; j++) {
@@ -239,6 +264,8 @@ public class Board extends JPanel implements ActionListener{
 
                     }
                 }
+
+
             }
 
             for (int z = 0; z < dots; z++) {
@@ -285,13 +312,75 @@ public class Board extends JPanel implements ActionListener{
 
     }
 
+    private void locateObstacle() {
+
+        int rndTmp = rand.nextInt(8);
+
+        switch (rndTmp) {
+            case 0: {
+                brick_x -= 10;
+                brick_y -= 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 1: {
+                brick_x -= 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 2: {
+                brick_x -= 10;
+                brick_y += 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 3: {
+                brick_y += 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 4: {
+                brick_x += 10;
+                brick_y += 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 5: {
+                brick_x += 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 6: {
+                brick_x += 10;
+                brick_y -= 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+            case 7: {
+                brick_y -= 10;
+                if(brick_x >= B_WIDTH || brick_y >= B_HEIGHT) break;
+                list.add(brick_x);
+                list.add(brick_y);
+            }
+        }
+
+    }
+
+
     private void checkApple() {
 
         if ((x[0] == apple_x) && (y[0] == apple_y)) {
 
             dots++;
             counter++;
-
+            locateObstacle();
             locateApple();
             if(music) {
                 clip2.setFramePosition(0);
@@ -400,6 +489,11 @@ public class Board extends JPanel implements ActionListener{
             }
         }
 
+        for(int i = 0; i < list.size(); i+=2)
+        if ((x[0] == list.get(i)) && (y[0] == list.get(i+1))) {
+            playAndSave();
+        }
+
         if (y[0] >= B_HEIGHT - 10) playAndSave();
 
         if (y[0] < 10) playAndSave();
@@ -449,11 +543,19 @@ public class Board extends JPanel implements ActionListener{
 
     private void locateApple() {
 
+        boolean flag = true;
+
         int r = (int) (Math.random() * RAND_POS);
         apple_x = ((r * DOT_SIZE));
 
         r = (int) (Math.random() * RAND_POS);
         apple_y = ((r * DOT_SIZE));
+
+        for(int i = 0; i < list.size(); i+=2) {
+            if(apple_x == list.get(i) || apple_y == list.get(i+1)) {
+                locateApple();
+            }
+        }
     }
 
     private void showHighscores(Graphics g) {

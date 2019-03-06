@@ -1,0 +1,6 @@
+ss 1
+ss 0
+ss 0
+qwe 5
+rty 1
+ttt 4
